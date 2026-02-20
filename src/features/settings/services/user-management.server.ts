@@ -47,3 +47,29 @@ export async function getUsers(): Promise<UserProfile[]> {
 
     return typedProfiles;
 }
+
+export async function getCurrentProfile(): Promise<UserProfile | null> {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return null;
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+    if (!profile) {
+        // Fallback for development if profile missing
+        return {
+            id: user.id,
+            email: user.email!,
+            full_name: user.user_metadata?.full_name || 'Usuario',
+            role: 'admin', // Default to admin for the first user if no profile exists
+            created_at: user.created_at
+        };
+    }
+
+    return profile;
+}

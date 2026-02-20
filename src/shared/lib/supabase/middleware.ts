@@ -44,13 +44,13 @@ export async function updateSession(request: NextRequest) {
         const pathname = request.nextUrl.pathname
         const isAuthRoute = pathname === '/login'
         const isProtectedRoute = pathname.startsWith('/transactions') ||
-            pathname.startsWith('/reports')
+            pathname.startsWith('/reports') ||
+            pathname.startsWith('/settings')
 
         if (isProtectedRoute && !user) {
             const url = request.nextUrl.clone()
             url.pathname = '/login'
             const response = NextResponse.redirect(url)
-            // Transfer cookies from supabaseResponse to the redirect response
             supabaseResponse.cookies.getAll().forEach((cookie) => {
                 const { name, value, ...options } = cookie
                 response.cookies.set(name, value, options)
@@ -58,11 +58,30 @@ export async function updateSession(request: NextRequest) {
             return response
         }
 
+        // Role-based protection for /settings
+        if (pathname.startsWith('/settings') && user) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single()
+
+            if (profile?.role !== 'admin') {
+                const url = request.nextUrl.clone()
+                url.pathname = '/transactions'
+                const response = NextResponse.redirect(url)
+                supabaseResponse.cookies.getAll().forEach((cookie) => {
+                    const { name, value, ...options } = cookie
+                    response.cookies.set(name, value, options)
+                })
+                return response
+            }
+        }
+
         if (isAuthRoute && user) {
             const url = request.nextUrl.clone()
             url.pathname = '/transactions'
             const response = NextResponse.redirect(url)
-            // Transfer cookies from supabaseResponse to the redirect response
             supabaseResponse.cookies.getAll().forEach((cookie) => {
                 const { name, value, ...options } = cookie
                 response.cookies.set(name, value, options)

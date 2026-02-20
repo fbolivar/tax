@@ -9,6 +9,7 @@ import { TransactionFilters } from '@/features/transactions/components/transacti
 import { DashboardHeader } from '@/shared/components/DashboardHeader';
 import { MetricCard } from '@/shared/components/MetricCard';
 import { Card } from '@/shared/components/Card';
+import { getCurrentProfile } from '@/features/settings/services/user-management.server';
 import { ArrowUpCircle, ArrowDownCircle, Wallet, Scale, History, Calendar } from 'lucide-react';
 import Link from 'next/link';
 
@@ -20,6 +21,9 @@ export default async function TransactionsPage({
     const params = await searchParams;
     const month = params.month ? parseInt(params.month) : new Date().getMonth() + 1;
     const year = params.year ? parseInt(params.year) : new Date().getFullYear();
+
+    const profile = await getCurrentProfile();
+    const isAdmin = profile?.role === 'admin';
 
     const transactions = await getTransactionsServer({ month, year });
     const allYearTransactions = await getTransactionsServer({ year });
@@ -46,7 +50,7 @@ export default async function TransactionsPage({
                         allStatements={allStatements}
                         year={year}
                     />
-                    <IngestPdf />
+                    {isAdmin && <IngestPdf />}
                 </div>
             </DashboardHeader>
 

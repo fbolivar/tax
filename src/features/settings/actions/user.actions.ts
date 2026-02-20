@@ -1,9 +1,19 @@
 
 'use server';
 
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@/shared/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+
+// Cliente administrativo para evitar conflictos de cookies durante la invitación
+const getAdminClient = () => {
+    return createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { auth: { persistSession: false } }
+    );
+};
 
 const userSchema = z.object({
     email: z.string().email('Email inválido'),
@@ -45,8 +55,6 @@ export async function updateUserProfile(userId: string, data: { full_name: strin
 export async function deleteUser(userId: string) {
     const supabase = await createClient();
 
-    // NOTE: This only deletes the profile. To delete the Auth user
-    // we would need service_role permissions.
     const { error } = await supabase
         .from('profiles')
         .delete()
@@ -72,10 +80,10 @@ export async function inviteUser(formData: FormData) {
         return { error: result.error.issues[0].message };
     }
 
-    const supabase = await createClient();
+    // Usamos el cliente administrativo sin persistencia para no cerrar la sesión del Admin actual
+    const adminSupabase = getAdminClient();
 
-    // 1. Create the Auth User
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    const { data: authData, error: authError } = await adminSupabase.auth.signUp({
         email: result.data.email,
         password: result.data.password,
         options: {
@@ -90,10 +98,9 @@ export async function inviteUser(formData: FormData) {
         return { error: authError.message };
     }
 
-    // 2. Profile creation is handled by the SQL trigger we created earlier
-    // If the trigger failed or isn't there, we can manually insert as fallback
     if (authData.user) {
-        const { error: profileError } = await supabase
+        const publicSupabase = await createClient();
+        const { error: profileError } = await publicSupabase
             .from('profiles')
             .upsert({
                 id: authData.user.id,
@@ -108,5 +115,19 @@ export async function inviteUser(formData: FormData) {
     }
 
     revalidatePath('/settings/users');
+    return { success: true };
+}
+
+export async function changePassword(formData: FormData) {
+    const password = formData.get('password') as string;
+    const supabase = await createClient();
+    const { error } = await supabase.auth.updateUser({
+        password
+    });
+
+    if (error) {
+        return { error: error.message };
+    }
+
     return { success: true };
 }

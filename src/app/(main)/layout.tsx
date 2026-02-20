@@ -1,11 +1,15 @@
 import { logout } from '@/features/auth/actions/auth.actions';
+import { getCurrentProfile } from '@/features/settings/services/user-management.server';
 import Link from 'next/link';
 
-export default function MainLayout({
+export default async function MainLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const profile = await getCurrentProfile();
+  const isAdmin = profile?.role === 'admin';
+
   return (
     <div className="min-h-screen bg-brand-bg/30">
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
@@ -31,12 +35,14 @@ export default function MainLayout({
                 >
                   Reportes
                 </Link>
-                <Link
-                  href="/settings/users"
-                  className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-[11px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark hover:border-brand-primary transition-all duration-300"
-                >
-                  Configuración
-                </Link>
+                {isAdmin && (
+                  <Link
+                    href="/settings/users"
+                    className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-[11px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark hover:border-brand-primary transition-all duration-300"
+                  >
+                    Configuración
+                  </Link>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-4">
