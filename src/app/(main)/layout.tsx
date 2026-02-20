@@ -31,6 +31,12 @@ export default function MainLayout({
                 >
                   Reportes
                 </Link>
+                <Link
+                  href="/settings/users"
+                  className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-[11px] font-black uppercase tracking-widest text-gray-400 hover:text-brand-dark hover:border-brand-primary transition-all duration-300"
+                >
+                  Configuración
+                </Link>
               </div>
             </div>
             <div className="flex items-center gap-4">
