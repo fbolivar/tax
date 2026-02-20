@@ -36,18 +36,6 @@ export default async function UsersPage() {
                 <UserList initialUsers={users} />
             </div>
 
-            {/* SQL Notice if empty */}
-            {users.length === 1 && users[0].full_name === 'Usuario Actual' && (
-                <div className="p-6 bg-brand-bg/50 border border-brand-primary/20 rounded-[2rem] flex flex-col items-center text-center gap-4">
-                    <div className="p-3 bg-brand-primary/10 rounded-2xl">
-                        <Users className="w-6 h-6 text-brand-primary" />
-                    </div>
-                    <div>
-                        <h4 className="text-sm font-black text-brand-dark uppercase tracking-tight">Base de Datos en Modo Resiliencia</h4>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Para habilitar la gestión completa de usuarios, recuerda ejecutar el script SQL de perfiles.</p>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
