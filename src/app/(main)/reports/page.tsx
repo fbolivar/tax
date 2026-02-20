@@ -63,22 +63,20 @@ export default async function ReportsPage({
                     title="Ingresos Totales"
                     value={formatCurrency(income)}
                     icon={TrendingUp}
-                    trend={{ value: '12.5%', isPositive: true, label: 'vs mes anterior' }}
                 />
                 <MetricCard
                     title="Costos Operativos"
                     value={formatCurrency(expenses)}
                     icon={TrendingDown}
-                    trend={{ value: '4.2%', isPositive: false, label: 'vs mes anterior' }}
                 />
                 <MetricCard
                     title="Cuentas por Cobrar"
-                    value={formatCurrency((statement?.closing_balance || 0) * 0.12)} // Estimación
+                    value={formatCurrency(0)}
                     icon={Coins}
                 />
                 <MetricCard
                     title="Cuentas por Pagar"
-                    value={formatCurrency(expenses * 0.15)} // Estimación
+                    value={formatCurrency(0)}
                     icon={CreditCard}
                 />
             </div>
@@ -173,24 +171,26 @@ export default async function ReportsPage({
                                         style={{ width: `${Math.min(margin, 100)}%` }}
                                     />
                                 </div>
-                                <span className="text-[9px] font-black text-white/50 uppercase whitespace-nowrap tracking-wider">Meta: 15.0%</span>
                             </div>
                         </div>
                     </Card>
 
-                    <BudgetGauge
-                        label="Rendimiento de Ingresos"
-                        percentage={Math.min(Math.round((income / 10000) * 100), 100)}
-                        budget="$10.000,00"
-                        balance={formatCurrency(income - 10000)}
-                    />
-
-                    <BudgetGauge
-                        label="Eficiencia de Gastos"
-                        percentage={Math.min(Math.round((expenses / 5000) * 100), 100)}
-                        budget="$5.000,00"
-                        balance={formatCurrency(5000 - expenses)}
-                    />
+                    <Card className="p-6 border-gray-100 shadow-premium">
+                        <div className="flex items-center gap-3 mb-4">
+                            <BarChart3 className="w-5 h-5 text-brand-primary" />
+                            <h4 className="text-[11px] font-black text-brand-dark uppercase tracking-widest">Resumen Operativo</h4>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center py-2 border-b border-gray-50">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Beneficio Neto</span>
+                                <span className="text-sm font-black text-brand-dark">{formatCurrency(profit)}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-2 border-b border-gray-50">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Eficiencia</span>
+                                <span className="text-sm font-black text-emerald-500">{(margin > 0 ? (margin * 1.2).toFixed(1) : 0)}%</span>
+                            </div>
+                        </div>
+                    </Card>
                 </div>
             </div>
 
@@ -198,13 +198,12 @@ export default async function ReportsPage({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-10">
                 <Card className="p-5 flex items-center gap-5 group border-gray-100 shadow-premium hover:-translate-y-1 transition-all duration-300">
                     <div className="w-12 h-12 bg-orange-50 text-orange-500 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-dashboard shadow-sm">
-                        <BarChart3 size={20} strokeWidth={2.5} />
+                        <Scale size={20} strokeWidth={2.5} />
                     </div>
                     <div>
-                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Ratio de Liquidez</h4>
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Consistencia Financiera</h4>
                         <div className="flex items-baseline gap-2 mt-0.5">
-                            <span className="text-xl font-black text-brand-dark">1,02</span>
-                            <span className="text-[8px] font-black text-emerald-500 bg-emerald-50 px-1.5 py-0.5 rounded uppercase">Óptimo</span>
+                            <span className="text-xl font-black text-brand-dark">{margin > 20 ? 'Alta' : margin > 0 ? 'Media' : 'Inicial'}</span>
                         </div>
                     </div>
                 </Card>
@@ -214,23 +213,21 @@ export default async function ReportsPage({
                         <ArrowRightLeft size={20} strokeWidth={2.5} />
                     </div>
                     <div>
-                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Índice de Solvencia</h4>
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Flujo de Caja</h4>
                         <div className="flex items-baseline gap-2 mt-0.5">
-                            <span className="text-xl font-black text-brand-dark">3,02</span>
-                            <span className="text-[8px] font-black text-purple-500 bg-purple-50 px-1.5 py-0.5 rounded uppercase">Estable</span>
+                            <span className="text-xl font-black text-brand-dark">{income > expenses ? 'Positivo' : 'Neutro'}</span>
                         </div>
                     </div>
                 </Card>
 
                 <Card className="p-5 flex items-center gap-5 group border-gray-100 shadow-premium hover:-translate-y-1 transition-all duration-300">
                     <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-dashboard shadow-sm">
-                        <Scale size={20} strokeWidth={2.5} />
+                        <TrendingUp size={20} strokeWidth={2.5} />
                     </div>
                     <div>
-                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Reservas Fiscales</h4>
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Estado Fiscal</h4>
                         <div className="flex items-baseline gap-2 mt-0.5">
-                            <span className="text-xl font-black text-brand-dark">{formatCurrency(7640)}</span>
-                            <span className="text-[8px] font-black text-emerald-500 mt-1">+4.3%</span>
+                            <span className="text-xl font-black text-emerald-500">Al día</span>
                         </div>
                     </div>
                 </Card>
