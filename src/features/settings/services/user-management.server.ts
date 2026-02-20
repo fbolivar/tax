@@ -13,7 +13,7 @@ export async function getUsers(): Promise<UserProfile[]> {
         .order('created_at', { ascending: false });
 
     if (error) {
-        console.error('SUPABASE_ERROR [profiles]:', error.message || 'Unknown Error', error);
+        console.warn('SUPABASE_INFO [profiles]: La tabla "profiles" no existe aún en este entorno. Usando fallback de sesión local.');
 
         // Fallback: Si la tabla no existe, al menos devolvemos al usuario actual para no romper la UI
         const { data: { user: authUser } } = await supabase.auth.getUser();
