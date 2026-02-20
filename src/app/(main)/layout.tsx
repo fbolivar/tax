@@ -56,9 +56,16 @@ export default async function MainLayout({
           </div>
         </div>
       </nav>
-      <main className="relative">
+      <main className="relative min-h-[calc(100vh-64px-81px)]">
         {children}
       </main>
+      <footer className="bg-white/50 backdrop-blur-md border-t border-gray-100 py-8">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+            By BUSINESS INVESTMENT GROUP INC @ 2026
+          </p>
+        </div>
+      </footer>
     </div>
   )
 }
