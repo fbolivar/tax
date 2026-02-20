@@ -110,7 +110,7 @@ export async function inviteUser(formData: FormData) {
             });
 
         if (profileError) {
-            console.warn('Profile upsert warning:', profileError);
+            console.error('Core sync error: profile_upsert_failed', profileError.message);
         }
     }
 

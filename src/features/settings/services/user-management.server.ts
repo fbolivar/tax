@@ -5,47 +5,17 @@ import { UserProfile } from '../types/user.types';
 export async function getUsers(): Promise<UserProfile[]> {
     const supabase = await createClient();
 
-    // In a real app, this might come from a 'profiles' table 
-    // since auth.users isn't directly listable without service_role
     const { data: profiles, error } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
     if (error) {
-        console.warn('SUPABASE_INFO [profiles]: La tabla "profiles" no existe aún en este entorno. Usando fallback de sesión local.');
-
-        // Fallback: Si la tabla no existe, al menos devolvemos al usuario actual para no romper la UI
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (authUser) {
-            return [{
-                id: authUser.id,
-                email: authUser.email!,
-                full_name: authUser.user_metadata?.full_name || 'Usuario Actual',
-                role: 'admin',
-                created_at: authUser.created_at
-            }];
-        }
+        console.error('Error fetching profiles:', error);
         return [];
     }
 
-    const typedProfiles = (profiles as any[]) || [];
-
-    // Si la tabla existe pero está vacía, devolvemos al usuario actual como admin provisional
-    if (typedProfiles.length === 0) {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (authUser) {
-            return [{
-                id: authUser.id,
-                email: authUser.email!,
-                full_name: authUser.user_metadata?.full_name || 'Admin Inicial',
-                role: 'admin',
-                created_at: authUser.created_at
-            }];
-        }
-    }
-
-    return typedProfiles;
+    return (profiles as UserProfile[]) || [];
 }
 
 export async function getCurrentProfile(): Promise<UserProfile | null> {
@@ -61,15 +31,8 @@ export async function getCurrentProfile(): Promise<UserProfile | null> {
         .single();
 
     if (!profile) {
-        // Fallback for development if profile missing
-        return {
-            id: user.id,
-            email: user.email!,
-            full_name: user.user_metadata?.full_name || 'Usuario',
-            role: 'admin', // Default to admin for the first user if no profile exists
-            created_at: user.created_at
-        };
+        return null;
     }
 
-    return profile;
+    return profile as UserProfile;
 }
