@@ -2,9 +2,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Shield, UserX, Trash2, Calendar as CalendarIcon, MoreVertical } from 'lucide-react';
+import { Mail, Shield, Trash2, Calendar as CalendarIcon, Edit3, X, Loader2, User } from 'lucide-react';
 import { UserProfile } from '../types/user.types';
-import { updateUserRole, deleteUser } from '../actions/user.actions';
+import { deleteUser, updateUserProfile } from '../actions/user.actions';
 
 interface Props {
     initialUsers: UserProfile[];
@@ -12,18 +12,29 @@ interface Props {
 
 export function UserList({ initialUsers }: Props) {
     const [users, setUsers] = useState(initialUsers);
+    const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+    const [isPending, setIsPending] = useState(false);
 
-    const handleToggleRole = async (user: UserProfile) => {
-        const newRole = user.role === 'admin' ? 'viewer' : 'admin';
+    const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!editingUser) return;
+        setIsPending(true);
 
-        // Optimistic update
-        setUsers(users.map(u => u.id === user.id ? { ...u, role: newRole } : u));
+        const formData = new FormData(e.currentTarget);
+        const data = {
+            full_name: formData.get('full_name') as string,
+            role: formData.get('role') as 'admin' | 'viewer',
+        };
 
-        const result = await updateUserRole(user.id, newRole);
-        if (result.error) {
-            alert('No se pudo actualizar el rol: ' + result.error);
-            setUsers(users); // Revert
+        const result = await updateUserProfile(editingUser.id, data);
+
+        if (result.success) {
+            setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...data } : u));
+            setEditingUser(null);
+        } else {
+            alert('Error al actualizar: ' + result.error);
         }
+        setIsPending(false);
     };
 
     const handleDelete = async (userId: string) => {
@@ -48,61 +59,116 @@ export function UserList({ initialUsers }: Props) {
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {users.map((user) => (
-                <div key={user.id} className="group relative bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:border-brand-primary/20 hover:shadow-2xl hover:shadow-brand-primary/5 transition-all duration-500">
-                    {/* Status Badge */}
-                    <div className="absolute top-6 right-6 flex items-center gap-2">
-                        <button
-                            onClick={() => handleToggleRole(user)}
-                            className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-tighter transition-all hover:scale-105 ${user.role === 'admin' ? 'bg-orange-50 text-orange-600 hover:bg-orange-100' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                                }`}
-                        >
-                            {user.role}
-                        </button>
-                    </div>
-
-                    <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-brand-bg flex items-center justify-center text-xl font-black text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-all duration-500 shadow-sm">
-                            {user.full_name?.[0] || user.email[0].toUpperCase()}
+        <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {users.map((user) => (
+                    <div key={user.id} className="group relative bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:border-brand-primary/20 hover:shadow-2xl hover:shadow-brand-primary/5 transition-all duration-500">
+                        {/* Role Badge */}
+                        <div className="absolute top-6 right-6 flex items-center gap-2">
+                            <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-tighter ${user.role === 'admin' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'
+                                }`}>
+                                {user.role}
+                            </span>
                         </div>
-                        <div className="space-y-1 overflow-hidden">
-                            <h3 className="font-black text-brand-dark uppercase text-xs tracking-tight leading-none truncate w-full">
-                                {user.full_name || 'Sin Nombre'}
-                            </h3>
-                            <div className="flex items-center gap-1.5 text-gray-400">
-                                <Mail className="w-3 h-3 flex-shrink-0" />
-                                <span className="text-[10px] font-bold tracking-tight lowercase truncate">{user.email}</span>
+
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-brand-bg flex items-center justify-center text-xl font-black text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-all duration-500 shadow-sm">
+                                {user.full_name?.[0] || user.email[0].toUpperCase()}
+                            </div>
+                            <div className="space-y-1 overflow-hidden">
+                                <h3 className="font-black text-brand-dark uppercase text-xs tracking-tight leading-none truncate w-full">
+                                    {user.full_name || 'Sin Nombre'}
+                                </h3>
+                                <div className="flex items-center gap-1.5 text-gray-400">
+                                    <Mail className="w-3 h-3 flex-shrink-0" />
+                                    <span className="text-[10px] font-bold tracking-tight lowercase truncate">{user.email}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-gray-300">
+                                <CalendarIcon className="w-3 h-3" />
+                                <span className="text-[9px] font-black uppercase tracking-tighter">
+                                    {new Date(user.created_at).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={() => setEditingUser(user)}
+                                    className="p-2 hover:bg-brand-bg rounded-lg text-gray-300 hover:text-brand-primary transition-all"
+                                    title="Editar Perfil"
+                                >
+                                    <Edit3 className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(user.id)}
+                                    className="p-2 hover:bg-rose-50 rounded-lg text-gray-300 hover:text-rose-500 transition-all"
+                                    title="Eliminar Usuario"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
                             </div>
                         </div>
                     </div>
+                ))}
+            </div>
 
-                    <div className="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-gray-300">
-                            <CalendarIcon className="w-3 h-3" />
-                            <span className="text-[9px] font-black uppercase tracking-tighter">
-                                {new Date(user.created_at).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })}
-                            </span>
+            {/* Edit Modal */}
+            {editingUser && (
+                <>
+                    <div className="fixed inset-0 bg-brand-dark/40 backdrop-blur-sm z-[100]" onClick={() => setEditingUser(null)} />
+                    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-[2rem] p-8 shadow-2xl z-[101] animate-in zoom-in-95 duration-300">
+                        <div className="flex items-start justify-between mb-8">
+                            <div className="space-y-1">
+                                <h2 className="text-xl font-black text-brand-dark uppercase tracking-tight">Editar Perfil</h2>
+                                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Actualiza la información del usuario</p>
+                            </div>
+                            <button onClick={() => setEditingUser(null)} className="p-2 hover:bg-gray-50 rounded-xl text-gray-400"><X className="w-5 h-5" /></button>
                         </div>
-                        <div className="flex items-center gap-1">
+
+                        <form onSubmit={handleEditSubmit} className="space-y-5">
+                            <div className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Nombre Completo</label>
+                                    <div className="relative">
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                                        <input
+                                            name="full_name"
+                                            defaultValue={editingUser.full_name || ''}
+                                            required
+                                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-xs font-bold text-brand-dark focus:ring-2 focus:ring-brand-primary/20 transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Rol</label>
+                                    <div className="relative">
+                                        <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
+                                        <select
+                                            name="role"
+                                            defaultValue={editingUser.role}
+                                            className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-xs font-black text-brand-dark appearance-none uppercase tracking-tighter"
+                                        >
+                                            <option value="viewer">Viewer</option>
+                                            <option value="admin">Admin</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
                             <button
-                                onClick={() => handleToggleRole(user)}
-                                title="Cambiar Rol"
-                                className="p-2 hover:bg-brand-bg rounded-lg text-gray-300 hover:text-brand-primary transition-all"
+                                type="submit"
+                                disabled={isPending}
+                                className="w-full py-4 bg-brand-dark text-white rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-brand-primary transition-all flex items-center justify-center gap-2 shadow-xl shadow-brand-dark/10"
                             >
-                                <Shield className="w-4 h-4" />
+                                {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Guardar Cambios'}
                             </button>
-                            <button
-                                onClick={() => handleDelete(user.id)}
-                                title="Eliminar Usuario"
-                                className="p-2 hover:bg-rose-50 rounded-lg text-gray-300 hover:text-rose-500 transition-all"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </button>
-                        </div>
+                        </form>
                     </div>
-                </div>
-            ))}
-        </div>
+                </>
+            )}
+        </>
     );
 }
