@@ -1,6 +1,8 @@
 
-import { Users, UserPlus, Shield, Mail, Calendar as CalendarIcon } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { getUsers } from '@/features/settings/services/user-management.server';
+import { UserList } from '@/features/settings/components/user-list';
+import { InviteUserDialog } from '@/features/settings/components/invite-user-dialog';
 
 export default async function UsersPage() {
     const users = await getUsers();
@@ -24,61 +26,28 @@ export default async function UsersPage() {
                     </p>
                 </div>
 
-                <button className="flex items-center justify-center gap-2 px-6 py-3 bg-brand-dark text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-primary transition-all active:scale-95 shadow-xl shadow-brand-dark/10">
-                    <UserPlus className="w-4 h-4" />
-                    Invitar Usuario
-                </button>
+                <div className="flex items-center gap-3">
+                    <InviteUserDialog />
+                </div>
             </div>
 
             {/* Content Section */}
-            <div className="grid gap-4">
-                {users.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 bg-gray-50/50 rounded-3xl border-2 border-dashed border-gray-100">
-                        <Users className="w-12 h-12 text-gray-200 mb-4" />
-                        <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest">No hay usuarios registrados</h3>
-                        <p className="text-[10px] text-gray-300 font-bold uppercase mt-1">Crea un perfil para empezar</p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {users.map((user) => (
-                            <div key={user.id} className="group relative bg-white rounded-3xl p-6 shadow-sm border border-gray-100 hover:border-brand-primary/20 hover:shadow-2xl hover:shadow-brand-primary/5 transition-all duration-500">
-                                <div className="absolute top-6 right-6">
-                                    <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-tighter ${user.role === 'admin' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'
-                                        }`}>
-                                        {user.role}
-                                    </span>
-                                </div>
-                                <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-brand-bg flex items-center justify-center text-xl font-black text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-colors duration-500">
-                                        {user.full_name?.[0] || user.email[0].toUpperCase()}
-                                    </div>
-                                    <div className="space-y-1">
-                                        <h3 className="font-black text-brand-dark uppercase text-sm tracking-tight leading-none truncate w-40">
-                                            {user.full_name || 'Sin Nombre'}
-                                        </h3>
-                                        <div className="flex items-center gap-1.5 text-gray-400">
-                                            <Mail className="w-3 h-3" />
-                                            <span className="text-[10px] font-bold tracking-tight lowercase">{user.email}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between">
-                                    <div className="flex items-center gap-2 text-gray-300">
-                                        <CalendarIcon className="w-3 h-3" />
-                                        <span className="text-[9px] font-black uppercase tracking-tighter">
-                                            Desde: {new Date(user.created_at).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })}
-                                        </span>
-                                    </div>
-                                    <button className="p-2 hover:bg-brand-bg rounded-lg text-gray-400 hover:text-brand-primary transition-colors">
-                                        <Shield className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
+            <div className="relative">
+                <UserList initialUsers={users} />
             </div>
+
+            {/* SQL Notice if empty */}
+            {users.length === 1 && users[0].full_name === 'Usuario Actual' && (
+                <div className="p-6 bg-brand-bg/50 border border-brand-primary/20 rounded-[2rem] flex flex-col items-center text-center gap-4">
+                    <div className="p-3 bg-brand-primary/10 rounded-2xl">
+                        <Users className="w-6 h-6 text-brand-primary" />
+                    </div>
+                    <div>
+                        <h4 className="text-sm font-black text-brand-dark uppercase tracking-tight">Base de Datos en Modo Resiliencia</h4>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Para habilitar la gestión completa de usuarios, recuerda ejecutar el script SQL de perfiles.</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
