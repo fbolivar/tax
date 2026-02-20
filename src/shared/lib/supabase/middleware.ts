@@ -22,7 +22,7 @@ export async function updateSession(request: NextRequest) {
                 getAll() {
                     return request.cookies.getAll()
                 },
-                setAll(cookiesToSet) {
+                setAll(cookiesToSet: { name: string; value: string; options: any }[]) {
                     cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
                     supabaseResponse = NextResponse.next({
                         request,
@@ -52,7 +52,8 @@ export async function updateSession(request: NextRequest) {
             const response = NextResponse.redirect(url)
             // Transfer cookies from supabaseResponse to the redirect response
             supabaseResponse.cookies.getAll().forEach((cookie) => {
-                response.cookies.set(cookie.name, cookie.value, cookie.options)
+                const { name, value, ...options } = cookie
+                response.cookies.set(name, value, options)
             })
             return response
         }
@@ -63,7 +64,8 @@ export async function updateSession(request: NextRequest) {
             const response = NextResponse.redirect(url)
             // Transfer cookies from supabaseResponse to the redirect response
             supabaseResponse.cookies.getAll().forEach((cookie) => {
-                response.cookies.set(cookie.name, cookie.value, cookie.options)
+                const { name, value, ...options } = cookie
+                response.cookies.set(name, value, options)
             })
             return response
         }
