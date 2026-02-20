@@ -12,7 +12,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <span className="font-black text-xl">TX</span>
         </div>
         <h2 className="text-[24px] font-black text-brand-dark uppercase tracking-tighter">
-          Plataforma Fiscal
+          BC TaxFlow
         </h2>
         <p className="mt-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
           Inteligencia de Datos Financieros

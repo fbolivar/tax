@@ -20,7 +20,7 @@ export default async function MainLayout({
                 <div className="w-8 h-8 bg-brand-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-primary/20 group-hover:rotate-12 transition-transform duration-500">
                   <span className="font-black text-xs">TX</span>
                 </div>
-                <span className="font-black text-brand-dark text-xl tracking-tighter">TaxApp</span>
+                <span className="font-black text-brand-dark text-xl tracking-tighter">BC TaxFlow</span>
               </div>
               <div className="hidden sm:flex sm:space-x-8">
                 <Link
