@@ -33,28 +33,6 @@ export async function login(formData: FormData) {
     redirect('/transactions');
 }
 
-export async function signup(formData: FormData) {
-    const supabase = await createClient();
-
-    const rawData = {
-        email: formData.get('email') as string,
-        password: formData.get('password') as string,
-    };
-
-    const result = authSchema.safeParse(rawData);
-    if (!result.success) {
-        redirect(`/login?error=${encodeURIComponent(result.error.issues[0].message)}`);
-    }
-
-    const { error } = await supabase.auth.signUp(result.data);
-
-    if (error) {
-        redirect('/login?error=No se pudo crear el usuario');
-    }
-
-    revalidatePath('/', 'layout');
-    redirect('/transactions');
-}
 
 export async function logout() {
     const supabase = await createClient()

@@ -1,5 +1,5 @@
 
-import { login, signup } from '@/features/auth/actions/auth.actions'
+import { login } from '@/features/auth/actions/auth.actions'
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
 
@@ -68,12 +68,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                 className="w-full h-11 flex items-center justify-center rounded-xl bg-brand-primary text-white text-[11px] font-black uppercase tracking-widest shadow-lg shadow-brand-primary/20 hover:bg-brand-dark transition-all active:scale-[0.98]"
               >
                 Iniciar Sesión
-              </button>
-              <button
-                formAction={signup}
-                className="w-full h-11 flex items-center justify-center rounded-xl border border-gray-100 bg-white text-gray-400 text-[11px] font-black uppercase tracking-widest hover:bg-gray-50 hover:text-brand-dark transition-all active:scale-[0.98]"
-              >
-                Crear Cuenta
               </button>
             </div>
           </form>
